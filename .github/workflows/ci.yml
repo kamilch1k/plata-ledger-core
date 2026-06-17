@@ -25,7 +25,8 @@ jobs:
         run: go vet ./...
 
       - name: Test (race + coverage)
-        run: go test ./internal/... -race -covermode=atomic -coverprofile=cover.out
+        # Generated protobuf code (internal/ledgerpb) is excluded from coverage.
+        run: go test -race -covermode=atomic -coverprofile=cover.out ./internal/ledger ./internal/api ./internal/grpcapi
 
       - name: Coverage gate (>= 80%)
         run: |
