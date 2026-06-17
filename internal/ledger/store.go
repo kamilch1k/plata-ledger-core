@@ -9,6 +9,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+
+	"github.com/kamilch1k/plata-ledger-core/internal/events"
 )
 
 // Account is a balance held in a single currency. The balance is stored in
@@ -245,6 +247,17 @@ func (s *Store) Transfer(ctx context.Context, p TransferParams) (Transfer, bool,
 		`INSERT INTO ledger_entries (transfer_id, account_id, amount_minor)
 		 VALUES ($1, $2, $3), ($1, $4, $5)`,
 		t.ID, p.FromAccount, -p.AmountMinor, p.ToAccount, p.AmountMinor); err != nil {
+		return Transfer{}, false, err
+	}
+
+	// Transactional outbox: the event commits atomically with the movement.
+	if err := events.AppendTx(ctx, tx, t.ID, events.TransferPosted, map[string]any{
+		"transfer_id":  t.ID,
+		"from_account": p.FromAccount,
+		"to_account":   p.ToAccount,
+		"amount_minor": p.AmountMinor,
+		"currency":     t.Currency,
+	}); err != nil {
 		return Transfer{}, false, err
 	}
 

@@ -12,6 +12,8 @@ import (
 	embeddedpostgres "github.com/fergusstrange/embedded-postgres"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
+
+	"github.com/kamilch1k/plata-ledger-core/internal/events"
 )
 
 const testPort = 54329
@@ -43,6 +45,12 @@ func TestMain(m *testing.M) {
 		fmt.Fprintln(os.Stderr, "migrate:", err)
 		os.Exit(1)
 	}
+	if err := events.Migrate(ctx, pool); err != nil {
+		pool.Close()
+		_ = pg.Stop()
+		fmt.Fprintln(os.Stderr, "migrate events:", err)
+		os.Exit(1)
+	}
 	testPool = pool
 
 	code := m.Run()
@@ -56,7 +64,7 @@ func TestMain(m *testing.M) {
 func freshStore(t *testing.T) *Store {
 	t.Helper()
 	_, err := testPool.Exec(context.Background(),
-		`TRUNCATE ledger_entries, transfers, accounts RESTART IDENTITY CASCADE`)
+		`TRUNCATE ledger_entries, transfers, accounts, events RESTART IDENTITY CASCADE`)
 	require.NoError(t, err)
 	return New(testPool)
 }
