@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package ledger.v1;
+
+option go_package = "github.com/kamilch1k/plata-ledger-core/internal/ledgerpb;ledgerpb";
+
+// Ledger is the gRPC surface over the same service layer as the HTTP API.
+service Ledger {
+  rpc CreateAccount(CreateAccountRequest) returns (Account);
+  rpc GetAccount(GetAccountRequest) returns (Account);
+  rpc Transfer(TransferRequest) returns (TransferResponse);
+}
+
+message Account {
+  string id = 1;
+  string name = 2;
+  string currency = 3;
+  int64 balance_minor = 4;
+}
+
+message CreateAccountRequest {
+  string name = 1;
+  string currency = 2;
+  int64 initial_balance_minor = 3;
+}
+
+message GetAccountRequest {
+  string id = 1;
+}
+
+message TransferRequest {
+  string idempotency_key = 1;
+  string from_account = 2;
+  string to_account = 3;
+  int64 amount_minor = 4;
+}
+
+message TransferResponse {
+  string id = 1;
+  string from_account = 2;
+  string to_account = 3;
+  int64 amount_minor = 4;
+  string currency = 5;
+  // True when this was an idempotent replay of an already-applied transfer.
+  bool replay = 6;
+}
