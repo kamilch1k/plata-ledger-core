@@ -25,8 +25,10 @@ jobs:
         run: go vet ./...
 
       - name: Test (race + coverage)
-        # Generated protobuf code (internal/ledgerpb) is excluded from coverage.
-        run: go test -race -covermode=atomic -coverprofile=cover.out ./internal/ledger ./internal/api ./internal/grpcapi
+        # -p 1 serialises package test binaries so the embedded-postgres
+        # instances don't race extracting to a shared cache. Generated code
+        # (internal/ledgerpb) and the Kafka adapter are excluded from coverage.
+        run: go test -race -covermode=atomic -coverprofile=cover.out -p 1 ./internal/ledger ./internal/api ./internal/grpcapi ./internal/events ./internal/origination ./internal/aml
 
       - name: Coverage gate (>= 80%)
         run: |
