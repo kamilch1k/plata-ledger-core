@@ -39,7 +39,7 @@ need is Go:
 ```bash
 git clone https://github.com/kamilch1k/plata-ledger-core
 cd plata-ledger-core
-go test ./...        # ~88% coverage; CI also runs it under -race
+go test -p 1 ./...   # ~84% coverage; -p 1 keeps the embedded-Postgres instances from racing
 ```
 
 ## Run the server
@@ -75,22 +75,51 @@ curl -s localhost:8080/accounts/acc_.../statement  # ledger entries
 A replayed `Idempotency-Key` returns `200` with the original transfer; a new one
 returns `201`. Overdraft returns `422`.
 
+## Event-driven layer (v2)
+
+State changes emit domain events through a **transactional outbox**: each event
+is written to the `events` table in the *same* transaction as the change that
+produced it, so an event is never lost or double-written relative to its state. A
+**relay** drains the outbox to the bus (Kafka in production; a logging stub
+locally) **at-least-once** — it publishes *before* marking, so a crash
+re-publishes rather than drops.
+
+Built on that:
+
+- **Loan origination** (`internal/origination`) — an event-sourced application
+  FSM (`submitted → kyc → scored → approved/declined → disbursed`) with a
+  transparent rule-based risk score. Illegal transitions are rejected, approved
+  loans disburse through the ledger idempotently, and a property test asserts the
+  event-sourcing invariant: **folding the events always equals the projected state**.
+- **AML monitoring** (`internal/aml`) — a streaming consumer applying
+  amount-threshold and velocity rules, **deduping by event id** so replays from an
+  at-least-once bus never double-count or double-alert.
+
+The Kafka producer/consumer (`internal/kafka`, `segmentio/kafka-go`) sits behind
+the `Publisher` / handler interfaces, so every correctness property is tested
+against embedded Postgres with in-memory fakes — no Docker, no broker required.
+
 ## Layout
 
 ```
-cmd/server        process entrypoint (config, pool, migrate, serve HTTP + gRPC)
-internal/ledger   the core: schema, accounts, transfers, double-entry, concurrency
-internal/api      HTTP layer over a LedgerService interface (testable without a DB)
-internal/grpcapi  gRPC layer over the same interface
-internal/ledgerpb generated protobuf/gRPC code
-proto/            ledger.proto service definition
+cmd/server           entrypoint: migrate, serve HTTP + gRPC, run the outbox relay
+internal/ledger      the core: accounts, transfers, double-entry, concurrency
+internal/api         HTTP layer over a LedgerService interface (DB-free tests)
+internal/grpcapi     gRPC layer over the same interface
+internal/ledgerpb    generated protobuf/gRPC code
+internal/events      transactional outbox + at-least-once relay
+internal/origination event-sourced loan-application FSM + risk scoring
+internal/aml         streaming AML consumer (dedupe + rules)
+internal/kafka       Kafka producer/consumer adapter (live-verified, not in CI)
+proto/               ledger.proto service definition
 ```
 
 ## Tech
 
-Go 1.26 · Postgres (`pgx/v5`) · gRPC + Protobuf · stdlib `net/http` routing ·
-`embedded-postgres` for hermetic tests · `gopter` property tests · GitHub Actions
-(`go vet`, `gofmt`, `-race`, coverage gate).
+Go 1.26 · Postgres (`pgx/v5`) · gRPC + Protobuf · Kafka (`segmentio/kafka-go`) ·
+transactional outbox · stdlib `net/http` routing · `embedded-postgres` for
+hermetic tests · `gopter` property tests · GitHub Actions (`go vet`, `gofmt`,
+`-race`, coverage gate).
 
 ## License
 

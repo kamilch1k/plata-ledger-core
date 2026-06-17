@@ -91,16 +91,38 @@ The HTTP layer depends on a `LedgerService` interface, so handler behaviour
 with an in-memory fake and no database, while the store's concurrency guarantees
 are tested against real Postgres.
 
-## Roadmap (intentionally out of scope for v1)
+## Event sourcing and the outbox (v2)
 
-v1 is the correct, tested core.
+**Transactional outbox.** A state change and the event announcing it must be
+all-or-nothing. Writing to a separate broker inside the DB transaction is
+impossible (the broker isn't transactional with Postgres), and publishing after
+commit can be lost on a crash. So the event is written to the `events` table in
+the *same* transaction (`events.AppendTx`), and a separate relay publishes it
+afterwards. The DB is the single source of truth; the bus eventually catches up.
 
-- **v1.1 (shipped)** — a gRPC/Protobuf surface (`proto/ledger.proto`) over the
-  same service layer; a property-based test (`gopter`) asserting the ledger
-  invariants on random transfer sequences; and a throughput benchmark
-  (`go test -bench`). *Still planned: an Allure report published to GitHub
-  Pages.*
-- **v2** — a loan-origination state machine with an append-only event audit
-  trail; Kafka event streaming via a transactional outbox with consumer-side
-  dedup; a streaming AML/fraud consumer; and a dbt + SQL analytics layer modelling
-  DPD buckets and default flags.
+**At-least-once, never at-most-once.** The relay publishes *then* marks
+published. A crash between the two re-publishes on restart — never drops. The
+inverse (mark then publish) would silently lose events on a crash. Because the
+bus is therefore at-least-once, every consumer must dedupe; the AML consumer
+claims each event id in a `processed_events` table (`INSERT ... ON CONFLICT DO
+NOTHING`) before acting, so replays are no-ops. Both properties are tested with
+fakes (`relay_test.go`) and against Postgres (`aml` replay-determinism test).
+
+**Event-sourced FSM.** The loan-origination projection is derived from its event
+log; a property test folds the events and asserts the result equals the stored
+projection for any random lifecycle. Illegal transitions are rejected by a single
+`transitions` table, and disbursement reuses the ledger's idempotency so the
+two-step "move money, then record it" is safe to retry.
+
+## Roadmap
+
+- **v1.1 (shipped)** — gRPC/Protobuf surface, a `gopter` property test, and a
+  throughput benchmark.
+- **v2 (shipped, except analytics)** — event-sourced loan-origination FSM,
+  transactional outbox + at-least-once relay, streaming AML consumer with
+  event-id dedup, and a Kafka producer/consumer adapter behind the `Publisher`
+  interface.
+- **v2c (planned)** — a dbt + SQL analytics layer over the event/transfer data
+  modelling DPD buckets, default-flag latching, vintage cohorts, and
+  portfolio-at-risk, with reconciliation tests. *(Also still planned: an Allure
+  report on GitHub Pages.)*
