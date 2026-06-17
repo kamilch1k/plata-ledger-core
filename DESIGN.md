@@ -93,12 +93,13 @@ are tested against real Postgres.
 
 ## Roadmap (intentionally out of scope for v1)
 
-v1 is the correct, tested core. Planned next, in order:
+v1 is the correct, tested core.
 
-- **v1.1** — gRPC/Protobuf surface over the same service layer; a property-based
-  test (`gopter`) asserting the ledger invariant on random transfer sequences;
-  an Allure report published to GitHub Pages; a `k6` load script with real
-  throughput/latency numbers.
+- **v1.1 (shipped)** — a gRPC/Protobuf surface (`proto/ledger.proto`) over the
+  same service layer; a property-based test (`gopter`) asserting the ledger
+  invariants on random transfer sequences; and a throughput benchmark
+  (`go test -bench`). *Still planned: an Allure report published to GitHub
+  Pages.*
 - **v2** — a loan-origination state machine with an append-only event audit
   trail; Kafka event streaming via a transactional outbox with consumer-side
   dedup; a streaming AML/fraud consumer; and a dbt + SQL analytics layer modelling

@@ -24,6 +24,13 @@ events, loan origination, risk analytics) is in [DESIGN.md](DESIGN.md).
 Money correctness is subtle, so the reasoning — including a real
 **deadlock I had to design out** — is written up in [DESIGN.md](DESIGN.md).
 
+Beyond the example-based tests above, a **property-based test** (`gopter`,
+`TestProperty_LedgerInvariants`) replays dozens of *random* transfer sequences
+and asserts those invariants hold for every generated case, and a **benchmark**
+measures throughput: **~620 transfers/sec single-threaded** (1.6 ms/transfer)
+against embedded Postgres on a laptop — reproducible with
+`go test -bench=BenchmarkTransfer ./internal/ledger`.
+
 ## Run the tests (no Docker, no setup)
 
 The suite boots its own ephemeral Postgres (`embedded-postgres`), so all you
@@ -32,7 +39,7 @@ need is Go:
 ```bash
 git clone https://github.com/kamilch1k/plata-ledger-core
 cd plata-ledger-core
-go test ./...        # ~89% coverage; CI also runs it under -race
+go test ./...        # ~88% coverage; CI also runs it under -race
 ```
 
 ## Run the server
@@ -41,8 +48,13 @@ The server needs a Postgres. Point `DATABASE_URL` at one and run:
 
 ```bash
 export DATABASE_URL="postgres://postgres:postgres@localhost:5432/ledger?sslmode=disable"
-go run ./cmd/server         # listens on :8080, runs migrations on start
+go run ./cmd/server         # HTTP on :8080, gRPC on :9090, runs migrations on start
 ```
+
+The same service layer is exposed over **gRPC** (`proto/ledger.proto`):
+`CreateAccount`, `GetAccount`, and `Transfer` (with the idempotency key in the
+request message). Domain errors map to gRPC codes (`NotFound`,
+`FailedPrecondition`, `InvalidArgument`).
 
 ### API
 
@@ -66,15 +78,19 @@ returns `201`. Overdraft returns `422`.
 ## Layout
 
 ```
-cmd/server        process entrypoint (config, pool, migrate, serve)
+cmd/server        process entrypoint (config, pool, migrate, serve HTTP + gRPC)
 internal/ledger   the core: schema, accounts, transfers, double-entry, concurrency
 internal/api      HTTP layer over a LedgerService interface (testable without a DB)
+internal/grpcapi  gRPC layer over the same interface
+internal/ledgerpb generated protobuf/gRPC code
+proto/            ledger.proto service definition
 ```
 
 ## Tech
 
-Go 1.26 · Postgres (`pgx/v5`) · stdlib `net/http` routing · `embedded-postgres`
-for hermetic tests · GitHub Actions (`go vet`, `gofmt`, `-race`, coverage gate).
+Go 1.26 · Postgres (`pgx/v5`) · gRPC + Protobuf · stdlib `net/http` routing ·
+`embedded-postgres` for hermetic tests · `gopter` property tests · GitHub Actions
+(`go vet`, `gofmt`, `-race`, coverage gate).
 
 ## License
 
