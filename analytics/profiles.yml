@@ -1,0 +1,7 @@
+plata_risk:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DBT_DUCKDB_PATH', 'plata_risk.duckdb') }}"
+      threads: 4

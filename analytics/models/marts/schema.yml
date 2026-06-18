@@ -1,0 +1,30 @@
+version: 2
+
+models:
+  - name: mart_loan_month_dpd
+    description: Per loan-month DPD bucket and latching default flag.
+    columns:
+      - name: loan_id
+        tests: [not_null]
+      - name: as_of_month
+        tests: [not_null]
+      - name: dpd_bucket
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values: ["current", "1-30", "31-60", "61-90", "90+"]
+
+  - name: mart_vintage_cohorts
+    description: Default rate by origination vintage.
+    columns:
+      - name: vintage
+        tests: [not_null, unique]
+      - name: default_rate
+        tests: [not_null]
+
+  - name: mart_portfolio_at_risk
+    description: PAR30 by month.
+    columns:
+      - name: as_of_month
+        tests: [not_null, unique]
