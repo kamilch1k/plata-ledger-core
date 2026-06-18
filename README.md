@@ -75,6 +75,19 @@ curl -s localhost:8080/accounts/acc_.../statement  # ledger entries
 A replayed `Idempotency-Key` returns `200` with the original transfer; a new one
 returns `201`. Overdraft returns `422`.
 
+**Loan applications** drive the origination FSM over HTTP:
+
+```bash
+curl -s localhost:8080/applications \
+  -d '{"borrower_account":"acc_...","amount_minor":120000,"term_months":12,"monthly_income_minor":500000}'
+curl -s localhost:8080/applications/app_.../kyc      -d '{"pass":true}'
+curl -s localhost:8080/applications/app_.../score
+curl -s localhost:8080/applications/app_.../decision
+curl -s localhost:8080/applications/app_.../disburse -d '{"funding_account":"acc_..."}'
+```
+
+Illegal transitions (e.g. scoring before KYC) return `409`.
+
 ## Event-driven layer (v2)
 
 State changes emit domain events through a **transactional outbox**: each event
@@ -99,6 +112,16 @@ The Kafka producer/consumer (`internal/kafka`, `segmentio/kafka-go`) sits behind
 the `Publisher` / handler interfaces, so every correctness property is tested
 against embedded Postgres with in-memory fakes — no Docker, no broker required.
 
+## Risk analytics (v2c)
+
+A self-contained **dbt** project (`analytics/`) on **DuckDB** models the
+credit-risk metrics a lending team watches — DPD buckets, a **latching default
+flag**, vintage-cohort default rates, and **PAR30** — with generic and singular
+tests (including reconciliation checks that PAR30 and default rates stay within
+`[0,1]` and that the default flag never regresses). `cd analytics && dbt build`
+runs seeds → models → tests on a local DuckDB file: no server, no Docker. See
+[`analytics/README.md`](analytics/README.md).
+
 ## Layout
 
 ```
@@ -112,6 +135,7 @@ internal/origination event-sourced loan-application FSM + risk scoring
 internal/aml         streaming AML consumer (dedupe + rules)
 internal/kafka       Kafka producer/consumer adapter (live-verified, not in CI)
 proto/               ledger.proto service definition
+analytics/           dbt + DuckDB risk-analytics models, seeds, and tests
 ```
 
 ## Tech

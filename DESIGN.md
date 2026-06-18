@@ -122,7 +122,8 @@ two-step "move money, then record it" is safe to retry.
   transactional outbox + at-least-once relay, streaming AML consumer with
   event-id dedup, and a Kafka producer/consumer adapter behind the `Publisher`
   interface.
-- **v2c (planned)** — a dbt + SQL analytics layer over the event/transfer data
-  modelling DPD buckets, default-flag latching, vintage cohorts, and
-  portfolio-at-risk, with reconciliation tests. *(Also still planned: an Allure
-  report on GitHub Pages.)*
+- **v2c (shipped)** — a dbt + DuckDB analytics layer (`analytics/`) modelling DPD
+  buckets, a latching default flag, vintage-cohort default rates, and PAR30, with
+  generic + singular reconciliation tests; runs serverless via `dbt build`. The
+  origination FSM is also now exposed over HTTP. *(Still planned: an Allure report
+  on GitHub Pages.)*
