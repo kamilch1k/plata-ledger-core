@@ -35,3 +35,15 @@ jobs:
           total=$(go tool cover -func=cover.out | tail -1 | awk '{print $3}' | tr -d '%')
           echo "Total coverage: ${total}%"
           awk "BEGIN{ exit !(${total} >= 80) }"
+
+  analytics:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install dbt-duckdb
+      - name: dbt build (seed, models, tests on DuckDB)
+        working-directory: analytics
+        run: dbt build --profiles-dir .
