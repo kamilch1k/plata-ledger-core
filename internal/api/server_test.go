@@ -69,7 +69,7 @@ func do(t *testing.T, h http.Handler, method, path string, header map[string]str
 }
 
 func TestCreateAccount_201(t *testing.T) {
-	h := NewServer(newFake())
+	h := NewServer(newFake(), nil)
 	rr := do(t, h, "POST", "/accounts", nil, map[string]any{"name": "Alice", "currency": "USD", "initial_balance_minor": 500})
 	if rr.Code != http.StatusCreated {
 		t.Fatalf("got %d, want 201", rr.Code)
@@ -77,7 +77,7 @@ func TestCreateAccount_201(t *testing.T) {
 }
 
 func TestTransfer_RequiresIdempotencyKey(t *testing.T) {
-	h := NewServer(newFake())
+	h := NewServer(newFake(), nil)
 	rr := do(t, h, "POST", "/transfers", nil, map[string]any{"from_account": "acc_1", "to_account": "acc_2", "amount_minor": 100})
 	if rr.Code != http.StatusBadRequest {
 		t.Fatalf("got %d, want 400", rr.Code)
@@ -85,7 +85,7 @@ func TestTransfer_RequiresIdempotencyKey(t *testing.T) {
 }
 
 func TestTransfer_NewThenReplay(t *testing.T) {
-	h := NewServer(newFake())
+	h := NewServer(newFake(), nil)
 	hdr := map[string]string{"Idempotency-Key": "abc"}
 	body := map[string]any{"from_account": "acc_1", "to_account": "acc_2", "amount_minor": 100}
 
@@ -100,7 +100,7 @@ func TestTransfer_NewThenReplay(t *testing.T) {
 }
 
 func TestTransfer_InsufficientFunds_422(t *testing.T) {
-	h := NewServer(newFake())
+	h := NewServer(newFake(), nil)
 	rr := do(t, h, "POST", "/transfers", map[string]string{"Idempotency-Key": "big"},
 		map[string]any{"from_account": "acc_1", "to_account": "acc_2", "amount_minor": 5_000})
 	if rr.Code != http.StatusUnprocessableEntity {
@@ -109,7 +109,7 @@ func TestTransfer_InsufficientFunds_422(t *testing.T) {
 }
 
 func TestGetAccount_404(t *testing.T) {
-	h := NewServer(newFake())
+	h := NewServer(newFake(), nil)
 	rr := do(t, h, "GET", "/accounts/acc_missing", nil, nil)
 	if rr.Code != http.StatusNotFound {
 		t.Fatalf("got %d, want 404", rr.Code)

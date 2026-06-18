@@ -46,11 +46,12 @@ func main() {
 	defer pool.Close()
 
 	store := ledger.New(pool)
+	origStore := origination.New(pool, store)
 	amlConsumer := aml.New(pool)
 	for name, mig := range map[string]func(context.Context) error{
 		"ledger":      store.Migrate,
 		"events":      func(c context.Context) error { return events.Migrate(c, pool) },
-		"origination": origination.New(pool, store).Migrate,
+		"origination": origStore.Migrate,
 		"aml":         amlConsumer.Migrate,
 	} {
 		if err := mig(ctx); err != nil {
@@ -95,7 +96,7 @@ func main() {
 
 	srv := &http.Server{
 		Addr:              ":" + port,
-		Handler:           api.NewServer(store),
+		Handler:           api.NewServer(store, origStore),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 	log.Printf("plata-ledger-core HTTP listening on :%s", port)

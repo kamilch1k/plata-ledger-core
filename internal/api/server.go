@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"github.com/kamilch1k/plata-ledger-core/internal/ledger"
+	"github.com/kamilch1k/plata-ledger-core/internal/origination"
 )
 
 // LedgerService is the behaviour the HTTP layer needs. Decoupling from the
@@ -20,18 +21,23 @@ type LedgerService interface {
 }
 
 type server struct {
-	svc LedgerService
+	svc  LedgerService
+	orig OriginationService
 }
 
 // NewServer wires the routes. Go 1.22+ pattern routing keeps it dependency-free.
-func NewServer(svc LedgerService) http.Handler {
-	s := &server{svc: svc}
+// orig may be nil, in which case the origination endpoints are not registered.
+func NewServer(svc LedgerService, orig OriginationService) http.Handler {
+	s := &server{svc: svc, orig: orig}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", s.health)
 	mux.HandleFunc("POST /accounts", s.createAccount)
 	mux.HandleFunc("GET /accounts/{id}", s.getAccount)
 	mux.HandleFunc("GET /accounts/{id}/statement", s.statement)
 	mux.HandleFunc("POST /transfers", s.createTransfer)
+	if orig != nil {
+		s.registerOrigination(mux)
+	}
 	return mux
 }
 
@@ -144,8 +150,13 @@ func writeErr(w http.ResponseWriter, err error) {
 	case errors.Is(err, ledger.ErrInvalidAmount),
 		errors.Is(err, ledger.ErrInvalidCurrency),
 		errors.Is(err, ledger.ErrSameAccount),
-		errors.Is(err, ledger.ErrMissingIdempotencyKey):
+		errors.Is(err, ledger.ErrMissingIdempotencyKey),
+		errors.Is(err, origination.ErrInvalidApplication):
 		status = http.StatusBadRequest
+	case errors.Is(err, origination.ErrApplicationNotFound):
+		status = http.StatusNotFound
+	case errors.Is(err, origination.ErrIllegalTransition):
+		status = http.StatusConflict
 	}
 	writeJSON(w, status, map[string]string{"error": err.Error()})
 }
