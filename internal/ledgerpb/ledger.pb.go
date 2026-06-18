@@ -380,7 +380,7 @@ const file_ledger_proto_rawDesc = "" +
 	"\rCreateAccount\x12\x1f.ledger.v1.CreateAccountRequest\x1a\x12.ledger.v1.Account\x12>\n" +
 	"\n" +
 	"GetAccount\x12\x1c.ledger.v1.GetAccountRequest\x1a\x12.ledger.v1.Account\x12C\n" +
-	"\bTransfer\x12\x1a.ledger.v1.TransferRequest\x1a\x1b.ledger.v1.TransferResponseBCZAgithub.com/kamilch1k/ledgerline/internal/ledgerpb;ledgerpbb\x06proto3"
+	"\bTransfer\x12\x1a.ledger.v1.TransferRequest\x1a\x1b.ledger.v1.TransferResponseB<Z:github.com/kamilch1k/ledgerline/internal/ledgerpb;ledgerpbb\x06proto3"
 
 var (
 	file_ledger_proto_rawDescOnce sync.Once
