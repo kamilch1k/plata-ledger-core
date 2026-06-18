@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/kamilch1k/plata-ledger-core/internal/origination"
+	"github.com/kamilch1k/ledgerline/internal/origination"
 )
 
 // OriginationService is the loan-origination behaviour the HTTP layer needs;

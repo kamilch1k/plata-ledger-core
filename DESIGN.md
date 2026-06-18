@@ -1,7 +1,7 @@
 # Design notes
 
 A ledger's whole job is to be correct about money under concurrency and
-retries. These are the decisions that make `plata-ledger-core` correct, and why.
+retries. These are the decisions that make `ledgerline` correct, and why.
 
 ## Money is int64 minor units, never floats
 

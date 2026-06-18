@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package ledger.v1;
 
-option go_package = "github.com/kamilch1k/plata-ledger-core/internal/ledgerpb;ledgerpb";
+option go_package = "github.com/kamilch1k/ledgerline/internal/ledgerpb;ledgerpb";
 
 // Ledger is the gRPC surface over the same service layer as the HTTP API.
 service Ledger {

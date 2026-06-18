@@ -10,7 +10,7 @@ import (
 
 	"github.com/segmentio/kafka-go"
 
-	"github.com/kamilch1k/plata-ledger-core/internal/events"
+	"github.com/kamilch1k/ledgerline/internal/events"
 )
 
 // Publisher implements events.Publisher by writing events to a Kafka topic.

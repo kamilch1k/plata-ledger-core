@@ -15,8 +15,8 @@ import (
 	"github.com/leanovate/gopter/prop"
 	"github.com/stretchr/testify/require"
 
-	"github.com/kamilch1k/plata-ledger-core/internal/events"
-	"github.com/kamilch1k/plata-ledger-core/internal/ledger"
+	"github.com/kamilch1k/ledgerline/internal/events"
+	"github.com/kamilch1k/ledgerline/internal/ledger"
 )
 
 const testPort = 54330

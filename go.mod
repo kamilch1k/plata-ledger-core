@@ -1,4 +1,4 @@
-module github.com/kamilch1k/plata-ledger-core
+module github.com/kamilch1k/ledgerline
 
 go 1.26.4
 

@@ -7,8 +7,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	"github.com/kamilch1k/plata-ledger-core/internal/ledger"
-	pb "github.com/kamilch1k/plata-ledger-core/internal/ledgerpb"
+	"github.com/kamilch1k/ledgerline/internal/ledger"
+	pb "github.com/kamilch1k/ledgerline/internal/ledgerpb"
 )
 
 // LedgerService is the behaviour the gRPC layer needs; *ledger.Store satisfies it.

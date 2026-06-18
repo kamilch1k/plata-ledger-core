@@ -9,8 +9,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/kamilch1k/plata-ledger-core/internal/events"
-	"github.com/kamilch1k/plata-ledger-core/internal/ledger"
+	"github.com/kamilch1k/ledgerline/internal/events"
+	"github.com/kamilch1k/ledgerline/internal/ledger"
 )
 
 // Disburser moves the loan principal to the borrower. Satisfied by *ledger.Store.

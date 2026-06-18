@@ -1,6 +1,6 @@
-# plata-ledger-core
+# ledgerline
 
-[![CI](https://github.com/kamilch1k/plata-ledger-core/actions/workflows/ci.yml/badge.svg)](https://github.com/kamilch1k/plata-ledger-core/actions/workflows/ci.yml)
+[![CI](https://github.com/kamilch1k/ledgerline/actions/workflows/ci.yml/badge.svg)](https://github.com/kamilch1k/ledgerline/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 ![Go](https://img.shields.io/badge/go-1.26-00ADD8?logo=go&logoColor=white)
 
@@ -37,8 +37,8 @@ The suite boots its own ephemeral Postgres (`embedded-postgres`), so all you
 need is Go:
 
 ```bash
-git clone https://github.com/kamilch1k/plata-ledger-core
-cd plata-ledger-core
+git clone https://github.com/kamilch1k/ledgerline
+cd ledgerline
 go test -p 1 ./...   # ~84% coverage; -p 1 keeps the embedded-Postgres instances from racing
 ```
 

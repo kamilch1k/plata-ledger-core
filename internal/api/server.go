@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/kamilch1k/plata-ledger-core/internal/ledger"
-	"github.com/kamilch1k/plata-ledger-core/internal/origination"
+	"github.com/kamilch1k/ledgerline/internal/ledger"
+	"github.com/kamilch1k/ledgerline/internal/origination"
 )
 
 // LedgerService is the behaviour the HTTP layer needs. Decoupling from the

@@ -12,8 +12,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
 
-	"github.com/kamilch1k/plata-ledger-core/internal/ledger"
-	pb "github.com/kamilch1k/plata-ledger-core/internal/ledgerpb"
+	"github.com/kamilch1k/ledgerline/internal/ledger"
+	pb "github.com/kamilch1k/ledgerline/internal/ledgerpb"
 )
 
 // fakeService implements LedgerService in memory so the gRPC layer is tested

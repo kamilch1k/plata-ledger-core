@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/kamilch1k/plata-ledger-core/internal/origination"
+	"github.com/kamilch1k/ledgerline/internal/origination"
 )
 
 // fakeOrig implements OriginationService in memory.

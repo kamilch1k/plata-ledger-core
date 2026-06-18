@@ -9,7 +9,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/kamilch1k/plata-ledger-core/internal/ledger"
+	"github.com/kamilch1k/ledgerline/internal/ledger"
 )
 
 // fakeService implements LedgerService in memory so the HTTP layer is tested

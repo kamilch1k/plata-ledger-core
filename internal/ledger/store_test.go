@@ -13,7 +13,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/require"
 
-	"github.com/kamilch1k/plata-ledger-core/internal/events"
+	"github.com/kamilch1k/ledgerline/internal/events"
 )
 
 const testPort = 54329

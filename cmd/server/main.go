@@ -1,4 +1,4 @@
-// Command server runs the plata-ledger-core HTTP and gRPC APIs, drains the
+// Command server runs the ledgerline HTTP and gRPC APIs, drains the
 // event outbox to the message bus, and (when Kafka is configured) runs the AML
 // consumer.
 package main
@@ -15,14 +15,14 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 
-	"github.com/kamilch1k/plata-ledger-core/internal/aml"
-	"github.com/kamilch1k/plata-ledger-core/internal/api"
-	"github.com/kamilch1k/plata-ledger-core/internal/events"
-	"github.com/kamilch1k/plata-ledger-core/internal/grpcapi"
-	"github.com/kamilch1k/plata-ledger-core/internal/kafka"
-	"github.com/kamilch1k/plata-ledger-core/internal/ledger"
-	pb "github.com/kamilch1k/plata-ledger-core/internal/ledgerpb"
-	"github.com/kamilch1k/plata-ledger-core/internal/origination"
+	"github.com/kamilch1k/ledgerline/internal/aml"
+	"github.com/kamilch1k/ledgerline/internal/api"
+	"github.com/kamilch1k/ledgerline/internal/events"
+	"github.com/kamilch1k/ledgerline/internal/grpcapi"
+	"github.com/kamilch1k/ledgerline/internal/kafka"
+	"github.com/kamilch1k/ledgerline/internal/ledger"
+	pb "github.com/kamilch1k/ledgerline/internal/ledgerpb"
+	"github.com/kamilch1k/ledgerline/internal/origination"
 )
 
 func main() {
@@ -88,7 +88,7 @@ func main() {
 		}
 		gs := grpc.NewServer()
 		pb.RegisterLedgerServer(gs, grpcapi.NewServer(store))
-		log.Printf("plata-ledger-core gRPC listening on :%s", grpcPort)
+		log.Printf("ledgerline gRPC listening on :%s", grpcPort)
 		if err := gs.Serve(lis); err != nil {
 			log.Fatalf("grpc serve: %v", err)
 		}
@@ -99,7 +99,7 @@ func main() {
 		Handler:           api.NewServer(store, origStore),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
-	log.Printf("plata-ledger-core HTTP listening on :%s", port)
+	log.Printf("ledgerline HTTP listening on :%s", port)
 	if err := srv.ListenAndServe(); err != nil {
 		log.Fatal(err)
 	}
